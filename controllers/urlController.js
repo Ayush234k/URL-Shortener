@@ -24,12 +24,14 @@ async function generateShortURL(req, res) {
 
 async function getOriginalURL(req, res) {
     const shortId = req.params.shortID;
+    const date = new Date(Date.now());
+    const formattedDate = date.toLocaleDateString("en-GB");
     const entry = await URL.findOneAndUpdate(
         { shortID: shortId },
         {
             $push: {
                 visitHistory: {
-                    timestamp: Date.now(),
+                    timestamp: formattedDate,
                 },
             },
         },
@@ -42,8 +44,16 @@ async function getOriginalURL(req, res) {
     res.redirect(entry.redirectUrl);
 }
 
+async function getAnalytics(req, res) {
+    const data = await URL.findOne({ shortID: req.params.shortID })
+    return res.json({
+        totalVisits : data.visitHistory.length,
+        analytics : data.visitHistory
+    });
+}
 
 module.exports = {
     generateShortURL,
     getOriginalURL,
+    getAnalytics
 }
